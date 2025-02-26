@@ -13,6 +13,28 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 def analyze_image_with_gpt4v(image):
+    prompt= """
+Identify any fields, buttons and text in the screenshots and create user stories with acceptance criteria in BDD/Gherkin format from them
+
+Display Results as follows:
+
+#### **User Story:**
+#     As a [role], I want [feature] so that [benefit].
+
+#     #### **Acceptance Criteria:**
+#     - **Feature:** A brief description of the functionality
+#       - **Scenario:** Provide a detailed name for each scenario.
+#       - **Given:** Outline the preconditions necessary for the scenario.
+#       - **When:** Specify the actions taken by the user.
+#       - **Then:** State the expected results after the actions.    
+
+Requirements:
+-DO NOT WRITE ETC, WRITE IN DETAIL AND WRITE FULL SENTENCES
+-Also ensure all text fields and buttons and text are mentioned in the user stories and acceptance criteria.
+-Do not use short forms or reduce the number of examples; include every option explicitly.
+-Write out all details completely without omitting any examples or categories.
+"""
+
     try:
         # Convert image to bytes
         buffered = io.BytesIO()
@@ -26,7 +48,7 @@ def analyze_image_with_gpt4v(image):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Extract as many user stories as possible from the given image."},
+                        {"type": "text", "text": prompt},
                         {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64.b64encode(img_bytes).decode()}"}},
                     ],
                 }
