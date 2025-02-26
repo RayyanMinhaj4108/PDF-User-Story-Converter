@@ -170,7 +170,7 @@ def main():
             st.write(analysis_result)
 
             # Generate boilerplate code based on extracted user stories
-            st.subheader("Generated Boilerplate Code")
+            st.subheader("Generated API Code")
             programming_language = st.selectbox("Programming Language", ["Python", "JavaScript", "Java", "C#", "Go"])
             framework = st.text_input("Preferred API Framework", "FastAPI")
             additional_instructions = st.text_area("Additional Instructions (Optional)", "")
