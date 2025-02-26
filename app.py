@@ -175,19 +175,16 @@ def main():
             framework = st.text_input("Preferred API Framework", "FastAPI")
             additional_instructions = st.text_area("Additional Instructions (Optional)", "")
 
-            if st.button("Generate Boilerplate Code"):
+            if st.button("Generate API Code"):
                 boilerplate_code = generate_boilerplate(analysis_result, programming_language, framework, additional_instructions)
                 if boilerplate_code:
-                    st.code(boilerplate_code, language=programming_language.lower())
+                    #st.code(boilerplate_code, language=programming_language.lower())
 
-                    # Generate API code based on boilerplate and user stories
-                    st.subheader("Generated API Code")
-                    if st.button("Generate API Code"):
-                        api_code = generate_api_code(analysis_result, boilerplate_code, programming_language, framework, additional_instructions)
-                        if api_code:
-                            st.code(api_code, language=programming_language.lower())
-                        else:
-                            st.write("Failed to generate API code.")
+                    api_code = generate_api_code(analysis_result, boilerplate_code, programming_language, framework, additional_instructions)
+                    if api_code:
+                        st.code(api_code, language=programming_language.lower())
+                    else:
+                        st.write("Failed to generate API code.")
         else:
             st.write("Failed to analyze the image.")
 
