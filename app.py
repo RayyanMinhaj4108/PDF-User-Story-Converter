@@ -66,6 +66,44 @@ Requirements:
 
 
 
+def generate_boilerplate(user_stories, programming_language="Python", framework="FastAPI", additional_instructions=""):
+    """Generates boilerplate API code based on extracted user stories using GPT-4."""
+    try:
+        prompt_boiler_plate_creation = f"""
+        ## Prompt for API Boilerplate Code Generation
+
+        **Instructions:**
+        You are an AI code generation assistant. Your task is to generate *only* the boilerplate code of the API based on the provided user stories, programming language, API framework, and additional instructions. Do *not* include any explanatory text, comments outside of the code itself, or any other information besides the code. Ensure the generated code is well-structured, readable, and follows best practices for the chosen language and framework. Include necessary error handling and consider security implications where applicable. Assume all necessary libraries and dependencies are pre-installed. Focus on providing a functional boilerplate for an API implementation.
+
+        **Input:**
+        1. **User Stories:**
+        {user_stories}
+
+        2. **Programming Language:**
+        {programming_language}
+
+        3. **API Framework:**
+        {framework}
+
+        If the provided framework has issues or is not provided, then choose the best framework for the given programming language.
+
+        4. **Additional Instructions:**
+        {additional_instructions}
+
+        **Output:**
+        Provide *only* the boilerplate code with any JSON database defined and API definitions. We will implement these functions later.
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt_boiler_plate_creation}],
+            max_tokens=2000,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        st.error(f"Error generating boilerplate code: {e}")
+        return None
+
 
 def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="FastAPI", additional_instructions=""):
     """Generates API code based on extracted user stories using GPT-4."""
@@ -131,19 +169,25 @@ def main():
             st.subheader("Extracted User Stories")
             st.write(analysis_result)
 
-            # Generate API code based on extracted user stories
-            st.subheader("Generated API Code")
-            boiler_plate = st.text_area("Boilerplate Code (Optional)", "")
+            # Generate boilerplate code based on extracted user stories
+            st.subheader("Generated Boilerplate Code")
             programming_language = st.selectbox("Programming Language", ["Python", "JavaScript", "Java", "C#", "Go"])
             framework = st.text_input("Preferred API Framework", "FastAPI")
             additional_instructions = st.text_area("Additional Instructions (Optional)", "")
 
-            if st.button("Generate API Code"):
-                api_code = generate_api_code(analysis_result, boiler_plate, programming_language, framework, additional_instructions)
-                if api_code:
-                    st.code(api_code, language=programming_language.lower())
-                else:
-                    st.write("Failed to generate API code.")
+            if st.button("Generate Boilerplate Code"):
+                boilerplate_code = generate_boilerplate(analysis_result, programming_language, framework, additional_instructions)
+                if boilerplate_code:
+                    st.code(boilerplate_code, language=programming_language.lower())
+
+                    # Generate API code based on boilerplate and user stories
+                    st.subheader("Generated API Code")
+                    if st.button("Generate API Code"):
+                        api_code = generate_api_code(analysis_result, boilerplate_code, programming_language, framework, additional_instructions)
+                        if api_code:
+                            st.code(api_code, language=programming_language.lower())
+                        else:
+                            st.write("Failed to generate API code.")
         else:
             st.write("Failed to analyze the image.")
 
