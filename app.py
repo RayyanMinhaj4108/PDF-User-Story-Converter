@@ -19,7 +19,11 @@ def extract_images_from_pdf(pdf_file): # Removed the output_folder parameter
     try:
         doc = fitz.open(pdf_file)
 
+        print("Hi 1")
+
         images = []  # Store PIL Image objects
+
+        print("Hi 2")
 
         for page_num, page in enumerate(doc):
             for img_index, img in enumerate(page.get_images(full=True)):
