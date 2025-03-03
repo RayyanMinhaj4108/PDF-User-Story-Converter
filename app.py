@@ -17,7 +17,7 @@ client = openai.OpenAI(api_key=OPENAI_API_KEY)
 def extract_images_from_pdf(pdf_file): # Removed the output_folder parameter
     """Extracts images from a PDF file and returns a list of PIL Image objects."""
     print("Hi 0")
-    doc = fitz.open(pdf_file)
+    doc = fitz.open(stream=pdf_file, filetype="pdf")
 
     print("Hi 1")
 
@@ -207,7 +207,7 @@ def main():
 
     if uploaded_file:
         # Extract images from PDF
-        images = extract_images_from_pdf(uploaded_file)
+        images = extract_images_from_pdf(uploaded_file.read())
 
         if images:
             all_api_code = ""
