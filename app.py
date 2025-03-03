@@ -136,16 +136,16 @@ def generate_boilerplate(user_stories, programming_language="Python", framework=
         return None
 
 
-def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="FastAPI", additional_instructions="", previous_user_story="", previous_code=""):
+def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="FastAPI", additional_instructions="", combined_user_stories="", previous_code=""):
     """Generates API code based on extracted user stories using GPT-4, with context."""
     try:
         context = ""
-        if previous_user_story and previous_code:
+        if combined_user_stories and previous_code:
             context = f"""
-            Previous Image User Story and Acceptance Criteria:
-            {previous_user_story}
+            Previous Image User Stories and Acceptance Criterias:
+            {combined_user_stories}
 
-            Previous Image Generated Code:
+            Previous Generated Code that you need to build upon:
             {previous_code}
             """
 
@@ -202,22 +202,21 @@ def main():
     uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
 
     # Initialize context variables
-    previous_user_story = ""
-    previous_code = ""
+    #previous_user_story = ""
+    #previous_code = ""
+
+    user_stories = []
+    api_code = ""
 
     if uploaded_file:
         # Extract images from PDF
         images = extract_images_from_pdf(uploaded_file.read())
 
         if images:
-            all_api_code = ""
 
             for image in images:  # Iterate through the list of PIL Image objects
-                # Open the image
-
                 st.image(image, caption=f"Extracted Image", use_column_width=True)
 
-                # Analyze image
                 analysis_result = analyze_image_with_gpt4v(image)
 
                 if analysis_result:
@@ -225,46 +224,31 @@ def main():
                     st.write(analysis_result)
 
                     current_user_story = analysis_result  #Store user story for generate_api_code Function
-
-                    # Generate boilerplate code based on extracted user stories
-                    st.subheader("Generated API Code")
-                    programming_language = st.selectbox("Programming Language", ["Python", "JavaScript", "Java", "C#", "Go"])
-                    framework = st.text_input("Preferred API Framework", "FastAPI")
-                    additional_instructions = st.text_area("Additional Instructions (Optional)", "")
-
-                    if st.button("Generate API Code"):
-                        boilerplate_code = generate_boilerplate(analysis_result, programming_language, framework, additional_instructions)
-                        if boilerplate_code:
-                            #st.code(boilerplate_code, language=programming_language.lower())
-
-                            api_code = generate_api_code(current_user_story, boilerplate_code, programming_language, framework, additional_instructions, previous_user_story, previous_code)
-                            if api_code:
-                                st.code(api_code, language=programming_language.lower())
-                                previous_code = api_code #set previous code for context
-                                previous_user_story = current_user_story
-                                all_api_code += api_code
-                            else:
-                                st.write("Failed to generate API code.")
-                        else:
-                            st.write("Failed to generate Boilerplate code.")
+                    user_stories.append(current_user_story)
                 else:
-                    st.write("Failed to analyze the image.")
+                    st.write("Failed to analyze the image.")   
 
-            # save the context into a txt file
-            filepath = "image_context.txt"
 
-            # Open the file in write mode ('w') which overwrites the file if it exists
-            with open(filepath, 'w') as file:
-                # Write the string to the file
-                file.write(f"""
-                    Previous Image User Story and Acceptance Criteria:
-                    {previous_user_story}
+            # Generate boilerplate code based on extracted user stories
+            st.subheader("Generated API Code")
+            programming_language = st.selectbox("Programming Language", ["Python", "JavaScript", "Java", "C#", "Go"])
+            framework = st.text_input("Preferred API Framework", "FastAPI")
+            additional_instructions = st.text_area("Additional Instructions (Optional)", "")
+            
+            combined_user_stories = ""
 
-                    Previous Image Generated Code:
-                    {previous_code}
-                    """)
-
-            print(f'Context of user story and code saved to {filepath}')
+            if st.button("Generate API Code"):
+                boilerplate_code = generate_boilerplate(analysis_result, programming_language, framework, additional_instructions) #should we be pasing this everytime???
+                
+                if boilerplate_code:
+                    for i in range(0, len(user_stories)):
+                
+                        #st.code(boilerplate_code, language=programming_language.lower())
+                        combined_user_stories += '\n' + user_stories[i]
+                        api_code = generate_api_code(current_user_story, boilerplate_code, programming_language, framework, additional_instructions, combined_user_stories, api_code)
+                            
+                else:
+                    st.write("Failed to generate Boilerplate code.")
 
         else:
             st.write("No images were extracted from the PDF.")
