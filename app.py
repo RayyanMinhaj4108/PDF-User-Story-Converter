@@ -14,31 +14,26 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 
-def extract_images_from_pdf(pdf_file, output_folder="images"):
-    """Extracts images from a PDF file and saves them to the specified folder."""
+def extract_images_from_pdf(pdf_file): # Removed the output_folder parameter
+    """Extracts images from a PDF file and returns a list of PIL Image objects."""
     try:
-        # Create the output folder if it doesn't exist
-        os.makedirs(output_folder, exist_ok=True)
-
         doc = fitz.open(pdf_file)
 
-        image_paths = []  # Store paths to extracted images
+        images = []  # Store PIL Image objects
 
         for page_num, page in enumerate(doc):
             for img_index, img in enumerate(page.get_images(full=True)):
                 xref = img[0]  # Image reference
                 base_image = doc.extract_image(xref)
                 image_bytes = base_image["image"]
-                image_ext = base_image["ext"]
+                #image_ext = base_image["ext"] # Removed the image extension
 
-                # Save image
-                image_path = os.path.join(output_folder, f"image_{page_num+1}_{img_index+1}.{image_ext}")
-                with open(image_path, "wb") as img_file:
-                    img_file.write(image_bytes)
-                image_paths.append(image_path)  # Add the path to the list
+                # Create a PIL Image object from the bytes
+                image = Image.open(io.BytesIO(image_bytes))
+                images.append(image)
 
-        print(f"Images extracted successfully to '{output_folder}'.")
-        return image_paths  # Return the list of image paths
+        print(f"Images extracted successfully.")
+        return images  # Return the list of PIL Image objects
     except Exception as e:
         st.error(f"Error extracting images from PDF: {e}")
         return []
@@ -64,6 +59,7 @@ def analyze_image_with_gpt4v(image):
     -DO NOT WRITE ETC, WRITE IN DETAIL AND WRITE FULL SENTENCES
     -Also ensure all text fields and buttons and text are mentioned in the user stories and acceptance criteria.
     -Do not use short forms or reduce the number of examples; include every option explicitly.
+    -Write out all details completely without omitting any examples or categories; include ALL of them.
     -Write out all details completely without omitting any examples or categories; include ALL of them.
     """
 
@@ -209,14 +205,14 @@ def main():
 
     if uploaded_file:
         # Extract images from PDF
-        image_paths = extract_images_from_pdf(uploaded_file)
+        images = extract_images_from_pdf(uploaded_file)
 
-        if image_paths:
+        if images:
             all_api_code = ""
 
-            for image_path in image_paths:
+            for image in images:  # Iterate through the list of PIL Image objects
                 # Open the image
-                image = Image.open(image_path)
+
                 st.image(image, caption=f"Extracted Image", use_column_width=True)
 
                 # Analyze image
