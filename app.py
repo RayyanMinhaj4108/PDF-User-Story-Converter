@@ -16,32 +16,29 @@ client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 def extract_images_from_pdf(pdf_file): # Removed the output_folder parameter
     """Extracts images from a PDF file and returns a list of PIL Image objects."""
-    try:
-        print("Hi 0")
-        doc = fitz.open(pdf_file)
+    print("Hi 0")
+    doc = fitz.open(pdf_file)
 
-        print("Hi 1")
+    print("Hi 1")
 
-        images = []  # Store PIL Image objects
+    images = []  # Store PIL Image objects
 
-        print("Hi 2")
+    print("Hi 2")
 
-        for page_num, page in enumerate(doc):
-            for img_index, img in enumerate(page.get_images(full=True)):
-                xref = img[0]  # Image reference
-                base_image = doc.extract_image(xref)
-                image_bytes = base_image["image"]
-                #image_ext = base_image["ext"] # Removed the image extension
+    for page_num, page in enumerate(doc):
+        for img_index, img in enumerate(page.get_images(full=True)):
+            xref = img[0]  # Image reference
+            base_image = doc.extract_image(xref)
+            image_bytes = base_image["image"]
+            #image_ext = base_image["ext"] # Removed the image extension
 
-                # Create a PIL Image object from the bytes
-                image = Image.open(io.BytesIO(image_bytes))
-                images.append(image)
+            # Create a PIL Image object from the bytes
+            image = Image.open(io.BytesIO(image_bytes))
+            images.append(image)
 
-        print(f"Images extracted successfully.")
-        return images  # Return the list of PIL Image objects
-    except Exception as e:
-        st.error(f"Error extracting images from PDF: {e}")
-        return []
+    print(f"Images extracted successfully.")
+    return images  # Return the list of PIL Image objects
+
 
 def analyze_image_with_gpt4v(image):
     """Analyzes an image with GPT-4V."""
