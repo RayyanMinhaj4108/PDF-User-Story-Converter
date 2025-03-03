@@ -5,6 +5,7 @@ import base64
 from PIL import Image
 import os
 from dotenv import load_dotenv
+import fitz  # PyMuPDF
 
 # Load environment variables
 load_dotenv()
@@ -13,38 +14,72 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 
+def extract_images_from_pdf(pdf_file, output_folder="images"):
+    """Extracts images from a PDF file and saves them to the specified folder."""
+    try:
+        # Create the output folder if it doesn't exist
+        os.makedirs(output_folder, exist_ok=True)
 
+        doc = fitz.open(pdf_file)
 
+        image_paths = []  # Store paths to extracted images
+
+        for page_num, page in enumerate(doc):
+            for img_index, img in enumerate(page.get_images(full=True)):
+                xref = img[0]  # Image reference
+                base_image = doc.extract_image(xref)
+                image_bytes = base_image["image"]
+                image_ext = base_image["ext"]
+
+                # Save image
+                image_path = os.path.join(output_folder, f"image_{page_num+1}_{img_index+1}.{image_ext}")
+                with open(image_path, "wb") as img_file:
+                    img_file.write(image_bytes)
+                image_paths.append(image_path)  # Add the path to the list
+
+        print(f"Images extracted successfully to '{output_folder}'.")
+        return image_paths  # Return the list of image paths
+    except Exception as e:
+        st.error(f"Error extracting images from PDF: {e}")
+        return []
 
 def analyze_image_with_gpt4v(image):
+    """Analyzes an image with GPT-4V."""
     prompt= """
-Identify any fields, buttons and text in the screenshots and create user stories with acceptance criteria in BDD/Gherkin format from them
+    Identify any fields, buttons and text in the screenshots and create user stories with acceptance criteria in BDD/Gherkin format from them.
 
-Display Results as follows:
+    Display Results as follows:
 
-#### **User Story:**
-#     As a [role], I want [feature] so that [benefit].
+    #### **User Story:**
+    #     As a [role], I want [feature] so that [benefit].
 
-#     #### **Acceptance Criteria:**
-#     - **Feature:** A brief description of the functionality
-#       - **Scenario:** Provide a detailed name for each scenario.
-#       - **Given:** Outline the preconditions necessary for the scenario.
-#       - **When:** Specify the actions taken by the user.
-#       - **Then:** State the expected results after the actions.    
+    #     #### **Acceptance Criteria:**
+    #     - **Feature:** A brief description of the functionality
+    #       - **Scenario:** Provide a detailed name for each scenario.
+    #       - **Given:** Outline the preconditions necessary for the scenario.
+    #       - **When:** Specify the actions taken by the user.
+    #       - **Then:** State the expected results after the actions.
 
-Requirements:
--DO NOT WRITE ETC, WRITE IN DETAIL AND WRITE FULL SENTENCES
--Also ensure all text fields and buttons and text are mentioned in the user stories and acceptance criteria.
--Do not use short forms or reduce the number of examples; include every option explicitly.
--Write out all details completely without omitting any examples or categories.
-"""
+    Requirements:
+    -DO NOT WRITE ETC, WRITE IN DETAIL AND WRITE FULL SENTENCES
+    -Also ensure all text fields and buttons and text are mentioned in the user stories and acceptance criteria.
+    -Do not use short forms or reduce the number of examples; include every option explicitly.
+    -Write out all details completely without omitting any examples or categories; include ALL of them.
+    """
 
     try:
-        # Convert image to bytes
+        if isinstance(image, str):
+            # If image is a path, open it with PIL
+            pil_image = Image.open(image)
+        else:
+            # If image is already a PIL Image object, use it directly
+            pil_image = image
+
+
         buffered = io.BytesIO()
-        image.save(buffered, format="PNG")
+        pil_image.save(buffered, format="PNG")
         img_bytes = buffered.getvalue()
-        
+
         # Send image to OpenAI's GPT-4V
         response = client.chat.completions.create(
             model="gpt-4o",
@@ -63,8 +98,6 @@ Requirements:
     except Exception as e:
         st.error(f"Error analyzing image: {e}")
         return None
-
-
 
 def generate_boilerplate(user_stories, programming_language="Python", framework="FastAPI", additional_instructions=""):
     """Generates boilerplate API code based on extracted user stories using GPT-4."""
@@ -93,7 +126,7 @@ def generate_boilerplate(user_stories, programming_language="Python", framework=
         **Output:**
         Provide *only* the boilerplate code with any JSON database defined and API definitions. We will implement these functions later.
         """
-        
+
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt_boiler_plate_creation}],
@@ -105,30 +138,42 @@ def generate_boilerplate(user_stories, programming_language="Python", framework=
         return None
 
 
-def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="FastAPI", additional_instructions=""):
-    """Generates API code based on extracted user stories using GPT-4."""
+def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="FastAPI", additional_instructions="", previous_user_story="", previous_code=""):
+    """Generates API code based on extracted user stories using GPT-4, with context."""
     try:
+        context = ""
+        if previous_user_story and previous_code:
+            context = f"""
+            Previous Image User Story and Acceptance Criteria:
+            {previous_user_story}
+
+            Previous Image Generated Code:
+            {previous_code}
+            """
+
         prompt_api_creation = f"""
         ## Prompt for API Code Generation (Code-Only Output)
 
         **Instructions:**
 
-        You are an AI code generation assistant. Your task is to generate the API code given the boilerplate, and given detailed user story and acceptance criteria, programming language, API framework, and additional instructions. Do *not* include any explanatory text, comments outside of the code itself, or any other information besides the code. Ensure the generated code is well-structured, readable, and follows best practices for the chosen language and framework. Include necessary error handling and consider security implications where applicable. Assume all necessary libraries and dependencies are pre-installed. Focus on providing a functional API implementation.
+        You are an AI code generation assistant. Your task is to generate the API code given the boilerplate, detailed user story and acceptance criteria, programming language, API framework, and additional instructions.  Consider the previous context of user stories and code when generating the API for this current user story.  Do *not* include any explanatory text, comments outside of the code itself, or any other information besides the code. Ensure the generated code is well-structured, readable, and follows best practices for the chosen language and framework. Include necessary error handling and consider security implications where applicable. Assume all necessary libraries and dependencies are pre-installed. Focus on providing a functional API implementation.
 
         Also if any API is not implemented in the boilerplate, please implement it in the final code given the User story and Gherkin.
+
+        {context}  <-- Previous context
 
         **Input:**
 
         1. **Boilerplate Code:**
         {boiler_plate}
 
-        2. **User Story and Gherkin:** 
+        2. **User Story and Gherkin:**
         {user_story}
 
         3. **Programming Language:**
         {programming_language}
 
-        4. **API Framework:** 
+        4. **API Framework:**
         {framework}
 
         If the provided framework has issues or is not provided, then choose the best framework for the given programming language.
@@ -139,7 +184,7 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
         **Output:**
         Provide only the complete and functional API code in the specified programming language and framework. Include necessary imports, function definitions, routing, middleware (if applicable), and any other required code.
         """
-        
+
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt_api_creation}],
@@ -154,39 +199,77 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
 
 def main():
     st.title("Takim User Story Creator")
-    st.write("Upload an image to receive user stories using GPT-4V.") 
-    
-    uploaded_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
+    st.write("Upload a PDF to receive user stories using GPT-4V.")
+
+    uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
+
+    # Initialize context variables
+    previous_user_story = ""
+    previous_code = ""
 
     if uploaded_file:
-        # Open image
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
-        
-        # Analyze image
-        analysis_result = analyze_image_with_gpt4v(image)
-        if analysis_result:
-            st.subheader("Extracted User Stories")
-            st.write(analysis_result)
+        # Extract images from PDF
+        image_paths = extract_images_from_pdf(uploaded_file)
 
-            # Generate boilerplate code based on extracted user stories
-            st.subheader("Generated API Code")
-            programming_language = st.selectbox("Programming Language", ["Python", "JavaScript", "Java", "C#", "Go"])
-            framework = st.text_input("Preferred API Framework", "FastAPI")
-            additional_instructions = st.text_area("Additional Instructions (Optional)", "")
+        if image_paths:
+            all_api_code = ""
 
-            if st.button("Generate API Code"):
-                boilerplate_code = generate_boilerplate(analysis_result, programming_language, framework, additional_instructions)
-                if boilerplate_code:
-                    #st.code(boilerplate_code, language=programming_language.lower())
+            for image_path in image_paths:
+                # Open the image
+                image = Image.open(image_path)
+                st.image(image, caption=f"Extracted Image", use_column_width=True)
 
-                    api_code = generate_api_code(analysis_result, boilerplate_code, programming_language, framework, additional_instructions)
-                    if api_code:
-                        st.code(api_code, language=programming_language.lower())
-                    else:
-                        st.write("Failed to generate API code.")
+                # Analyze image
+                analysis_result = analyze_image_with_gpt4v(image)
+
+                if analysis_result:
+                    st.subheader("Extracted User Stories")
+                    st.write(analysis_result)
+
+                    current_user_story = analysis_result  #Store user story for generate_api_code Function
+
+                    # Generate boilerplate code based on extracted user stories
+                    st.subheader("Generated API Code")
+                    programming_language = st.selectbox("Programming Language", ["Python", "JavaScript", "Java", "C#", "Go"])
+                    framework = st.text_input("Preferred API Framework", "FastAPI")
+                    additional_instructions = st.text_area("Additional Instructions (Optional)", "")
+
+                    if st.button("Generate API Code"):
+                        boilerplate_code = generate_boilerplate(analysis_result, programming_language, framework, additional_instructions)
+                        if boilerplate_code:
+                            #st.code(boilerplate_code, language=programming_language.lower())
+
+                            api_code = generate_api_code(current_user_story, boilerplate_code, programming_language, framework, additional_instructions, previous_user_story, previous_code)
+                            if api_code:
+                                st.code(api_code, language=programming_language.lower())
+                                previous_code = api_code #set previous code for context
+                                previous_user_story = current_user_story
+                                all_api_code += api_code
+                            else:
+                                st.write("Failed to generate API code.")
+                        else:
+                            st.write("Failed to generate Boilerplate code.")
+                else:
+                    st.write("Failed to analyze the image.")
+
+            # save the context into a txt file
+            filepath = "image_context.txt"
+
+            # Open the file in write mode ('w') which overwrites the file if it exists
+            with open(filepath, 'w') as file:
+                # Write the string to the file
+                file.write(f"""
+                    Previous Image User Story and Acceptance Criteria:
+                    {previous_user_story}
+
+                    Previous Image Generated Code:
+                    {previous_code}
+                    """)
+
+            print(f'Context of user story and code saved to {filepath}')
+
         else:
-            st.write("Failed to analyze the image.")
+            st.write("No images were extracted from the PDF.")
 
 if __name__ == "__main__":
     main()
