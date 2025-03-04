@@ -97,7 +97,7 @@ def analyze_image_with_gpt4v(image):
         st.error(f"Error analyzing image: {e}")
         return None
 
-def generate_boilerplate(user_stories, programming_language="Python", framework="FastAPI", additional_instructions=""):
+def generate_boilerplate(user_stories, programming_language="Python", framework="Flask", additional_instructions=""):
     """Generates boilerplate API code based on extracted user stories using GPT-4."""
     try:
         prompt_boiler_plate_creation = f"""
@@ -200,17 +200,22 @@ def generate_boilerplate(user_stories, programming_language="Python", framework=
 #         st.error(f"Error generating API code: {e}")
 #         return None
 
-def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="FastAPI", additional_instructions="", combined_user_stories="", previous_code=""):
+def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="Flask", additional_instructions="", combined_user_stories=""):
     """Generates API code based on extracted user stories using Gemini 2.0 Flash, with context."""
     try:
         context = ""
         if combined_user_stories and previous_code:
-            context = f"""
-            Previous Image User Stories and Acceptance Criterias:
-            {combined_user_stories}
+            # context = f"""
+            # Previous Image User Stories and Acceptance Criterias:
+            # {combined_user_stories}
 
-            Previous Generated Code that you need to build upon:
-            {previous_code}
+            # Previous Generated Code that you need to build upon:
+            # {previous_code}
+            # """
+
+            context = f"""
+            Previous Image User Stories and Acceptance Criterias that were used to build the code provided below:
+            {combined_user_stories}
             """
 
         prompt_api_creation = f"""
@@ -231,7 +236,7 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
 
         **Input:**
 
-        1. **Boilerplate Code:**
+        1. **Previously produced Code that you need to build upon:**
         {boiler_plate}
 
         2. **User Story and Gherkin:**
@@ -311,7 +316,7 @@ def main():
             # Generate boilerplate code based on extracted user stories
             st.subheader("Generated API Code")
             programming_language = st.selectbox("Programming Language", ["Python", "JavaScript", "Java", "C#", "Go"])
-            framework = st.text_input("Preferred API Framework", "FastAPI")
+            framework = st.text_input("Preferred API Framework", "Flask")
             additional_instructions = st.text_area("Additional Instructions (Optional)", "")
             
             combined_user_stories = ""
@@ -323,10 +328,13 @@ def main():
                     for i in range(0, user_story_count):
                         #st.code(boilerplate_code, language=programming_language.lower())
                         combined_user_stories += '\n' + user_stories[i]
-                        api_code = generate_api_code(current_user_story, boilerplate_code, programming_language, framework, additional_instructions, combined_user_stories, api_code)
+                        
+                        if i==0:
+                            api_code = generate_api_code(current_user_story, boilerplate_code, programming_language, framework, additional_instructions, combined_user_stories)
+                        else:
+                            api_code = generate_api_code(current_user_story, api_code, programming_language, framework, additional_instructions, combined_user_stories)
                         
                         #please erase this later
-                        print(f'Code for iteration {i}: {api_code}')
                         x = "Code for iteration: " + str(i)
                         st.write(x)
                         st.code(api_code, language=programming_language.lower())
