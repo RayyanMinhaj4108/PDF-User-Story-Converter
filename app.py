@@ -269,6 +269,7 @@ def main():
     #previous_code = ""
 
     user_stories = []
+    user_story_count = 0
     api_code = ""
 
     if uploaded_file:
@@ -288,6 +289,7 @@ def main():
 
                     current_user_story = analysis_result  #Store user story for generate_api_code Function
                     user_stories.append(current_user_story)
+                    user_story_count += 1
                 else:
                     st.write("Failed to analyze the image.")   
 
@@ -304,7 +306,7 @@ def main():
                 boilerplate_code = generate_boilerplate(analysis_result, programming_language, framework, additional_instructions) #should we be pasing this everytime???
                 
                 if boilerplate_code:
-                    for i in range(0, len(user_stories)):
+                    for i in range(0, user_story_count):
                         #st.code(boilerplate_code, language=programming_language.lower())
                         combined_user_stories += '\n' + user_stories[i]
                         api_code = generate_api_code(current_user_story, boilerplate_code, programming_language, framework, additional_instructions, combined_user_stories, api_code)
