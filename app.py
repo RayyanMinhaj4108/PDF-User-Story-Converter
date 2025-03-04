@@ -102,6 +102,13 @@ def generate_boilerplate(user_stories, programming_language="Python", framework=
 
         **Instructions:**
         You are an AI code generation assistant. Your task is to generate *only* the boilerplate code of the API based on the provided user stories, programming language, API framework, and additional instructions. Do *not* include any explanatory text, comments outside of the code itself, or any other information besides the code. Ensure the generated code is well-structured, readable, and follows best practices for the chosen language and framework. Include necessary error handling and consider security implications where applicable. Assume all necessary libraries and dependencies are pre-installed. Focus on providing a functional boilerplate for an API implementation.
+        
+
+        **Important Instructions**
+        - Further ensure that the API includes CORS policy with allow-all origins. And further include any other security considerations.
+        - Ensure any POST request uses a JSON body rather than URL parameters.
+        - Further ensure there are GET requests for each respective POST request.
+
 
         **Input:**
         1. **User Stories:**
@@ -212,6 +219,11 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
 
         Also if any API is not implemented in the boilerplate, please implement it in the final code given the User story and Gherkin.
 
+        **Important Instructions:**
+        - Further ensure that the API includes CORS policy with allow-all origins. And further include any other security considerations.
+        - Ensure any POST request uses a JSON body rather than URL parameters.
+        - Further ensure there are GET requests for each respective POST request.
+
         {context}  <-- Previous context
 
         **Input:**
@@ -237,11 +249,10 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
         Provide only the complete and functional API code in the specified programming language and framework. Include necessary imports, function definitions, routing, middleware (if applicable), and any other required code.
         """
 
-        client_gemini = genai.Client(api_key="GOOGLE_API_KEY")
+        client_gemini = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
         response = client_gemini.models.generate_content(
                         model="gemini-2.0-flash",
                         contents=prompt_api_creation,
-                        request_options={"timeout":1000}
                     )
 
 
