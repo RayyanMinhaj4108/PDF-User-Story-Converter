@@ -13,6 +13,9 @@ from google import genai
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 
@@ -249,7 +252,7 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
         Provide only the complete and functional API code in the specified programming language and framework. Include necessary imports, function definitions, routing, middleware (if applicable), and any other required code.
         """
 
-        client_gemini = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+        client_gemini = genai.Client(api_key=GEMINI_API_KEY)
         response = client_gemini.models.generate_content(
                         model="gemini-2.0-flash",
                         contents=prompt_api_creation,
