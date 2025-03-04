@@ -324,7 +324,8 @@ def main():
                         #st.code(boilerplate_code, language=programming_language.lower())
                         combined_user_stories += '\n' + user_stories[i]
                         api_code = generate_api_code(current_user_story, boilerplate_code, programming_language, framework, additional_instructions, combined_user_stories, api_code)
-                        print(f'COde for iteration {i}: {api_code}')
+                        print(f'Code for iteration {i}: {api_code}')
+                        st.write(f"Code for iteration {i}: {api_code}")
 
                     if api_code:    
                         st.write("This is the final code")
