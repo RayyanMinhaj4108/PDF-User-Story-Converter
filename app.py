@@ -237,16 +237,20 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
         Provide only the complete and functional API code in the specified programming language and framework. Include necessary imports, function definitions, routing, middleware (if applicable), and any other required code.
         """
 
-        # Configure the API key (check for environment variable)
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        client_gemini = genai.Client(api_key="GOOGLE_API_KEY")
+        response = client_gemini.models.generate_content(
+                        model="gemini-2.0-flash",
+                        contents=prompt_api_creation,
+                        request_options={"timeout":1000}
+                    )
 
-        # Select the Gemini 1.5 Flash model
-        model = genai.GenerativeModel('gemini-2.0-flash') # Using Gemini 1.5 Flash
 
-        # Generate content using the Gemini model
-        response = model.generate_content(prompt_api_creation)
+        # genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-        # Handle response and return the generated code
+        # model = genai.GenerativeModel('gemini-2.0-flash') # Using Gemini 1.5 Flash
+
+        # response = model.generate_content(prompt_api_creation, request_options={"timeout":1000})
+
         return response.text
 
 
@@ -304,8 +308,10 @@ def main():
                         #st.code(boilerplate_code, language=programming_language.lower())
                         combined_user_stories += '\n' + user_stories[i]
                         api_code = generate_api_code(current_user_story, boilerplate_code, programming_language, framework, additional_instructions, combined_user_stories, api_code)
+                        print(f'COde for iteration {i}: {api_code}')
 
                     if api_code:    
+                        st.write("This is the final code")
                         st.code(api_code, language=programming_language.lower())        
                 else:
                     st.write("Failed to generate Boilerplate code.")
