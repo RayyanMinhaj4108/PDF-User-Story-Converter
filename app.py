@@ -6,7 +6,7 @@ from PIL import Image
 import os
 from dotenv import load_dotenv
 import fitz  # PyMuPDF
-import google.generativeai as genai
+from google import genai
 
 
 # Load environment variables
