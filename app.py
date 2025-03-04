@@ -6,6 +6,8 @@ from PIL import Image
 import os
 from dotenv import load_dotenv
 import fitz  # PyMuPDF
+import google.generativeai as genai
+
 
 # Load environment variables
 load_dotenv()
@@ -131,8 +133,65 @@ def generate_boilerplate(user_stories, programming_language="Python", framework=
         return None
 
 
+# def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="FastAPI", additional_instructions="", combined_user_stories="", previous_code=""):
+#     """Generates API code based on extracted user stories using GPT-4, with context."""
+#     try:
+#         context = ""
+#         if combined_user_stories and previous_code:
+#             context = f"""
+#             Previous Image User Stories and Acceptance Criterias:
+#             {combined_user_stories}
+
+#             Previous Generated Code that you need to build upon:
+#             {previous_code}
+#             """
+
+#         prompt_api_creation = f"""
+#         ## Prompt for API Code Generation (Code-Only Output)
+
+#         **Instructions:**
+
+#         You are an AI code generation assistant. Your task is to generate the API code given the boilerplate, detailed user story and acceptance criteria, programming language, API framework, and additional instructions.  Consider the previous context of user stories and code when generating the API for this current user story.  Do *not* include any explanatory text, comments outside of the code itself, or any other information besides the code. Ensure the generated code is well-structured, readable, and follows best practices for the chosen language and framework. Include necessary error handling and consider security implications where applicable. Assume all necessary libraries and dependencies are pre-installed. Focus on providing a functional API implementation.
+
+#         Also if any API is not implemented in the boilerplate, please implement it in the final code given the User story and Gherkin.
+
+#         {context}  <-- Previous context
+
+#         **Input:**
+
+#         1. **Boilerplate Code:**
+#         {boiler_plate}
+
+#         2. **User Story and Gherkin:**
+#         {user_story}
+
+#         3. **Programming Language:**
+#         {programming_language}
+
+#         4. **API Framework:**
+#         {framework}
+
+#         If the provided framework has issues or is not provided, then choose the best framework for the given programming language.
+
+#         5. **Additional Instructions:**
+#         {additional_instructions}
+
+#         **Output:**
+#         Provide only the complete and functional API code in the specified programming language and framework. Include necessary imports, function definitions, routing, middleware (if applicable), and any other required code.
+#         """
+
+#         response = client.chat.completions.create(
+#             model="gpt-4o",
+#             messages=[{"role": "user", "content": prompt_api_creation}],
+#             max_tokens=2000,
+#         )
+#         return response.choices[0].message.content
+#     except Exception as e:
+#         st.error(f"Error generating API code: {e}")
+#         return None
+
 def generate_api_code(user_story, boiler_plate="", programming_language="Python", framework="FastAPI", additional_instructions="", combined_user_stories="", previous_code=""):
-    """Generates API code based on extracted user stories using GPT-4, with context."""
+    """Generates API code based on extracted user stories using Gemini 2.0 Flash, with context."""
     try:
         context = ""
         if combined_user_stories and previous_code:
@@ -178,17 +237,22 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
         Provide only the complete and functional API code in the specified programming language and framework. Include necessary imports, function definitions, routing, middleware (if applicable), and any other required code.
         """
 
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt_api_creation}],
-            max_tokens=2000,
-        )
-        return response.choices[0].message.content
+        # Configure the API key (check for environment variable)
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+        # Select the Gemini 1.5 Flash model
+        model = genai.GenerativeModel('gemini-2.0-flash') # Using Gemini 1.5 Flash
+
+        # Generate content using the Gemini model
+        response = model.generate_content(prompt_api_creation)
+
+        # Handle response and return the generated code
+        return response.text
+
+
     except Exception as e:
         st.error(f"Error generating API code: {e}")
         return None
-
-
 
 def main():
     st.title("Takim User Story Creator")
