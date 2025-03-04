@@ -204,7 +204,7 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
     """Generates API code based on extracted user stories using Gemini 2.0 Flash, with context."""
     try:
         context = ""
-        if combined_user_stories and previous_code:
+        if combined_user_stories:
             # context = f"""
             # Previous Image User Stories and Acceptance Criterias:
             # {combined_user_stories}
@@ -282,10 +282,6 @@ def main():
     st.write("Upload a PDF to receive user stories using GPT-4V.")
 
     uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
-
-    # Initialize context variables
-    #previous_user_story = ""
-    #previous_code = ""
 
     user_stories = []
     user_story_count = 0
