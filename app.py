@@ -229,7 +229,6 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
 
         **Important Instructions:**
         - Further ensure that the API includes CORS policy with allow-all origins. And further include any other security considerations.
-        - Ensure any POST request uses a JSON body rather than URL parameters.
         - Further ensure there are GET requests for each respective POST request.
 
         {context}  <-- Previous context
