@@ -248,6 +248,9 @@ def generate_api_code(user_story, boiler_plate="", programming_language="Python"
         4. **API Framework:**
         {framework}
 
+        5. **Database**
+        - Use a JSON database/Dictionary for storing and retrieving the data.
+
         If the provided framework has issues or is not provided, then choose the best framework for the given programming language.
 
         5. **Additional Instructions:**
