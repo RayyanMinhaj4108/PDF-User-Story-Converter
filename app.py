@@ -541,7 +541,7 @@ def complete_code(past_chat):
             contents=prompt_api_creation,
         )
 
-        return response.text
+        return response.text, response.usage_metadata.candidates_token_count
 
     except Exception as e:
         st.error(f"Error generating API code: {e}")
@@ -672,9 +672,9 @@ def main():
 
                             chat_number += 1
 
-                            if token_count > 8000:
+                            while token_count > 8000:
                                 print("Alert")
-                                remaining_code = complete_code(combined_answer)
+                                remaining_code, token_count = complete_code(combined_answer)
 
                                 api_code += remaining_code
                                 combined_answer += remaining_code
@@ -707,9 +707,9 @@ def main():
 
                             chat_number += 1
 
-                            if token_count > 8000:
+                            while token_count > 8000:
                                 print("Alert")
-                                remaining_code = complete_code(combined_answer)
+                                remaining_code, token_count = complete_code(combined_answer)
 
                                 api_code += remaining_code
                                 combined_answer += remaining_code
