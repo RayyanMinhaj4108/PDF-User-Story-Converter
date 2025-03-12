@@ -147,6 +147,7 @@ def generate_boilerplate(
     additional_instructions="",
     database="JSON",
     orms="NO",
+    yaml_generated=""
 ):
     """Generates boilerplate API code based on extracted user stories using GPT-4."""
     try:
@@ -156,7 +157,7 @@ def generate_boilerplate(
         ## Prompt for API Boilerplate Code Generation
 
         **Instructions:**
-        You are an AI code generation assistant. Your task is to generate *only* the boilerplate code of the API based on the provided user stories, programming language, API framework, Database, ORMs (if any) and additional instructions. Do *not* include any explanatory text, comments outside of the code itself, or any other information besides the code. Ensure the generated code is well-structured, readable, and follows best practices for the chosen language and framework. Include necessary error handling and consider security implications where applicable. Assume all necessary libraries and dependencies are pre-installed. Focus on providing a functional boilerplate for an API implementation.
+        You are an AI code generation assistant. Your task is to generate *only* the boilerplate code of the API based on the provided user stories, programming language, API framework, Database, ORMs (if any), and the actual schema in YAML format, and additional instructions. Do *not* include any explanatory text, comments outside of the code itself, or any other information besides the code. Ensure the generated code is well-structured, readable, and follows best practices for the chosen language and framework. Include necessary error handling and consider security implications where applicable. Assume all necessary libraries and dependencies are pre-installed. Focus on providing a functional boilerplate for an API implementation.
         
 
         **Important Instructions**
@@ -180,8 +181,11 @@ def generate_boilerplate(
         
         5. **ORM:**
         {orm_context}
+
+        6. **YAML Schema:**
+        {yaml_generated}
         
-        6. **Additional Instructions:**
+        7. **Additional Instructions:**
         {additional_instructions}
 
         **Output:**
@@ -209,6 +213,7 @@ def generate_api_code(
     combined_user_stories="",
     database="PostgreSQL",
     orms="SQLAlchemy",
+    yaml_generated="",
 ):
     """Generates API code based on extracted user stories using Gemini 2.0 Flash, with context."""
     try:
@@ -244,7 +249,6 @@ def generate_api_code(
         - Further ensure that the API includes CORS policy with allow-all origins. And further include any other security considerations.
         - Further ensure there are GET requests for each respective POST request.
         - Ensure the outputs are not mock-up dictionaries but actual data from the database.
-        - Ensure the schema is normalised to a reasonable extent. Target 3NF.
 
         {context}  <-- Previous context
 
@@ -269,9 +273,12 @@ def generate_api_code(
         6. **ORM**
         {orms}
 
+        7. **YAML Schema:**
+        {yaml_generated}
+
         If the provided framework has issues or is not provided, then choose the best framework for the given programming language.
 
-        6. **Additional Instructions:**
+        8. **Additional Instructions:**
         {additional_instructions}
 
         **Expected Output:**
@@ -617,6 +624,7 @@ def main():
                     additional_instructions,
                     database,
                     orms,
+                    yaml_generated
                 )  # should we be pasing this everytime???
 
                 combined_answer += (
@@ -648,6 +656,7 @@ def main():
                                 combined_user_stories,
                                 database,
                                 orms,
+                                yaml_generated
                             )
 
                             combined_answer += (
@@ -682,6 +691,7 @@ def main():
                                 combined_user_stories,
                                 database,
                                 orms,
+                                yaml_generated
                             )
 
                             combined_answer += (
