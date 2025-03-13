@@ -318,9 +318,7 @@ def generate_api_code(
 
 
 def generate_yaml_schema(
-    user_story,
     combined_user_stories,
-    previous_yaml_schema,
 ):
     """Generates yaml schema based on extracted user stories using Gemini 2.0 Flash, with context."""
     try:
@@ -536,12 +534,6 @@ def generate_yaml_schema(
         **Context:**  
         {context}
 
-        **Previous Schema:**  
-        {previous_yaml_schema}
-
-        **User Story:**  
-        {user_story}
-
         **Expected Output:**  
         YAML schema output (optimized for readability and practicality).
         your yaml format should look like this (do not copy this as it is, use it as reference): 
@@ -663,10 +655,10 @@ def main():
             combined_user_stories = ""
             yaml_generated = ""
 
-            for i in range(0, user_story_count):
-                combined_user_stories += "\n" + user_stories[i]
-                yaml_generated, token_count = generate_yaml_schema(user_stories[i], combined_user_stories, yaml_generated)
-
+            # for i in range(0, user_story_count):
+            #     combined_user_stories += "\n" + user_stories[i]
+            #     yaml_generated, token_count = generate_yaml_schema(user_stories[i], combined_user_stories, yaml_generated)
+            yaml_generated, token_count = generate_yaml_schema(combined_user_stories)
             st.code(yaml_generated, language="yaml")
             
 
