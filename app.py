@@ -547,10 +547,10 @@ def generate_yaml_schema(
         YAML schema output (optimized for readability and practicality).
         your yaml format should look like this (do not copy this as it is, use it as reference): 
 
-        ```yaml 
-        tables:
-            users:
-                columns:
+        ```yaml
+         tables:
+             users:
+                 columns:
                 - id:
                     type: Integer
                     primary_key: true
@@ -570,7 +570,106 @@ def generate_yaml_schema(
                     foreign_key: assigned_to
                 prepopulate:
                 - name: "John Doe"
-                    email: "
+                    email: "john.doe@example.com"
+
+            teams:
+                columns:
+                - id:
+                    type: Integer
+                    primary_key: true
+                - name:
+                    type: String(100)
+
+                relationships:
+                - user_teams:
+                    type: one_to_many
+                    related_table: user_teams
+                    foreign_key: team_id
+                - projects:
+                    type: one_to_many
+                    related_table: projects
+                    foreign_key: team_id
+                prepopulate:
+                - name: "Development Team"
+
+            user_teams:
+                columns:
+                - id:
+                    type: Integer
+                    primary_key: true
+                - user_id:
+                    type: Integer
+                    foreign_key: users.id
+                - team_id:
+                    type: Integer
+                    foreign_key: teams.id
+                relationships:
+                - user:
+                    type: many_to_one
+                    related_table: users
+                    foreign_key: user_id
+                - team:
+                    type: many_to_one
+                    related_table: teams
+                    foreign_key: team_id
+
+            projects:
+                columns:
+                - id:
+                    type: Integer
+                    primary_key: true
+                - name:
+                    type: String(150)
+                - team_id:
+                    type: Integer
+                    foreign_key: teams.id
+                relationships:
+                - team:
+                  type: many_to_one
+                  related_table: teams
+                    foreign_key: team_id
+                - tasks:
+                    type: one_to_many
+                    related_table: tasks
+                    foreign_key: project_id
+                 prepopulate:
+                 - name: "Sample Project"
+
+             tasks:
+                 columns:
+                 - id:
+                     type: Integer
+                    primary_key: true
+                - title:
+                    type: String(150)
+                - description:
+                    type: Text
+                - status:
+                    type: String(50)
+                - priority:
+                    type: String(50)
+                - due_date:
+                    type: Date
+                - project_id:
+                    type: Integer
+                    foreign_key: projects.id
+                - assigned_to:
+                    type: Integer
+                    foreign_key: users.id
+                relationships:
+                - project:
+                    type: many_to_one
+                    related_table: projects
+                    foreign_key: project_id
+                - assigned_user:
+                    type: many_to_one
+                    related_table: users
+                    foreign_key: assigned_to
+                prepopulate:
+                - title: "Initial Task"
+                  status: "Pending"
+                  priority: "Medium"
+                  due_date: "2025-01-01"
         """
 
         client_gemini = genai.Client(api_key=GEMINI_API_KEY)
