@@ -336,221 +336,48 @@ def generate_yaml_schema(
             {combined_user_stories}
             """
 
-    #     prompt_schema_creation = f"""
-    #     ## Prompt for Schema Code Generation (YAML)
-
-    #    You are an expert database schema designer. Your task is to generate a well-structured, normalized (3NF) relational database schema in YAML format based on provided user stories and their corresponding acceptance criteria, I have also generated the previously generated yaml schema for reference so please edit it and add to it. Focus on creating a schema that minimizes redundancy, ensures data integrity, and avoids excessive columns per table.
-
-    #     **Instructions:**
-
-    #     1.  **Analyze User Story and Acceptance Criteria:** Carefully analyze the provided user story and its acceptance criteria to identify all entities, attributes, and relationships necessary to fulfill the requirements.
-    #     2.  **Identify Entities and Attributes:** Extract distinct entities and their relevant attributes from the user story.
-    #     3.  **Determine Relationships:** Identify the relationships between entities (one-to-one, one-to-many, many-to-many).
-    #     4.  **Normalize to 3NF:** Design the schema in 3rd Normal Form (3NF) by:
-    #         * Eliminating redundant data.
-    #         * Ensuring that all non-key attributes are fully dependent on the primary key.
-    #         * Removing transitive dependencies.
-    #     5.  **Minimize Columns:** Strive to create tables with a reasonable number of columns, breaking down large entities into smaller, related tables where appropriate.
-    #     6.  **Define Primary and Foreign Keys:** Clearly define primary keys for each table and establish foreign key relationships to enforce referential integrity.
-    #     7.  **Data Types:** Select appropriate data types for each attribute based on the nature of the data.
-    #     8.  **Output Format:** Provide the schema in YAML format, clearly defining tables, columns, data types, primary keys, and foreign keys.
-    #     9.  **No Explanatory Text:** Do *not* include any explanatory text or comments outside of the YAML schema definition itself.
-    #     10. **Assume Best Practices:** Adhere to database design best practices, including proper naming conventions and data type selection.
-    #     11. **Focus on Data Structure:** Focus solely on the schema structure, without considering specific database engine syntax or implementation details unless absolutely necessary to define a datatype.
-    #     12. **Handle Many-to-Many:** Properly implement many-to-many relationships using junction tables.
-        
-    #     **Context**
-
-    #     {context}  <-- Previous context
-
-    #     **Input:**
-
-    #     1. **Previously produced Schema that you need to build upon:**
-    #     This schema may have incomplete information and may need to be updated based on the new user stories.
-    #     {previous_yaml_schema}
-
-    #     2. **User Story and Gherkin:**
-    #     {user_story}
-
-    #     **Expected Output:**
-    #     1. A schema in YAML format.
-        
-    #     Example Schema that your final table may look like, basically use it as reference for the structure for the YAML file, do not copy it as it is or replicate it:
-    #     ```yaml
-    #     tables:
-    #         users:
-    #             columns:
-    #             - id:
-    #                 type: Integer
-    #                 primary_key: true
-    #             - name:
-    #                 type: String(100)
-    #             - email:
-    #                 type: String(150)
-    #                 unique: true
-    #             relationships:
-    #             - user_teams:
-    #                 type: one_to_many
-    #                 related_table: user_teams
-    #                 foreign_key: user_id
-    #             - tasks:
-    #                 type: one_to_many
-    #                 related_table: tasks
-    #                 foreign_key: assigned_to
-    #             prepopulate:
-    #             - name: "John Doe"
-    #                 email: "john.doe@example.com"
-
-    #         teams:
-    #             columns:
-    #             - id:
-    #                 type: Integer
-    #                 primary_key: true
-    #             - name:
-    #                 type: String(100)
-
-    #             relationships:
-    #             - user_teams:
-    #                 type: one_to_many
-    #                 related_table: user_teams
-    #                 foreign_key: team_id
-    #             - projects:
-    #                 type: one_to_many
-    #                 related_table: projects
-    #                 foreign_key: team_id
-    #             prepopulate:
-    #             - name: "Development Team"
-
-    #         user_teams:
-    #             columns:
-    #             - id:
-    #                 type: Integer
-    #                 primary_key: true
-    #             - user_id:
-    #                 type: Integer
-    #                 foreign_key: users.id
-    #             - team_id:
-    #                 type: Integer
-    #                 foreign_key: teams.id
-    #             relationships:
-    #             - user:
-    #                 type: many_to_one
-    #                 related_table: users
-    #                 foreign_key: user_id
-    #             - team:
-    #                 type: many_to_one
-    #                 related_table: teams
-    #                 foreign_key: team_id
-
-    #         projects:
-    #             columns:
-    #             - id:
-    #                 type: Integer
-    #                 primary_key: true
-    #             - name:
-    #                 type: String(150)
-    #             - team_id:
-    #                 type: Integer
-    #                 foreign_key: teams.id
-    #             relationships:
-    #             - team:
-    #               type: many_to_one
-    #               related_table: teams
-    #                 foreign_key: team_id
-    #             - tasks:
-    #                 type: one_to_many
-    #                 related_table: tasks
-    #                 foreign_key: project_id
-    #             prepopulate:
-    #             - name: "Sample Project"
-
-    #         tasks:
-    #             columns:
-    #             - id:
-    #                 type: Integer
-    #                 primary_key: true
-    #             - title:
-    #                 type: String(150)
-    #             - description:
-    #                 type: Text
-    #             - status:
-    #                 type: String(50)
-    #             - priority:
-    #                 type: String(50)
-    #             - due_date:
-    #                 type: Date
-    #             - project_id:
-    #                 type: Integer
-    #                 foreign_key: projects.id
-    #             - assigned_to:
-    #                 type: Integer
-    #                 foreign_key: users.id
-    #             relationships:
-    #             - project:
-    #                 type: many_to_one
-    #                 related_table: projects
-    #                 foreign_key: project_id
-    #             - assigned_user:
-    #                 type: many_to_one
-    #                 related_table: users
-    #                 foreign_key: assigned_to
-    #             prepopulate:
-    #             - title: "Initial Task"
-    #               status: "Pending"
-    #               priority: "Medium"
-    #               due_date: "2025-01-01"
-    #     """
-
         prompt_schema_creation = f"""
-        ## Schema Generation Prompt (YAML)
+        ## Prompt for Schema Code Generation (YAML)
 
-        You are an experienced database schema designer. Design a **practical, optimized, and clean** YAML schema based on the provided user story and context.
+       You are an expert database schema designer. Your task is to generate a well-structured, normalized (3NF) relational database schema in YAML format based on provided user stories and their corresponding acceptance criteria, I have also generated the previously generated yaml schema for reference so please edit it and add to it. Focus on creating a schema that minimizes redundancy, ensures data integrity, and avoids excessive columns per table.
 
-        **Key Objectives:**
+        **Instructions:**
 
-        1️ **Understand the User Story:**  
-           Extract relevant entities, attributes, and relationships from the user story.
+        1.  **Analyze User Story and Acceptance Criteria:** Carefully analyze the provided user story and its acceptance criteria to identify all entities, attributes, and relationships necessary to fulfill the requirements.
+        2.  **Identify Entities and Attributes:** Extract distinct entities and their relevant attributes from the user story.
+        3.  **Determine Relationships:** Identify the relationships between entities (one-to-one, one-to-many, many-to-many).
+        4.  **Normalize to 3NF:** Design the schema in 3rd Normal Form (3NF) by:
+            * Ensure the tables does not have exceedingly large number of columns.
+            * Stick to 3NF, **but don’t overdo it**. If a table gets too fragmented or introduces too many unnecessary joins, intelligently **merge tables**.  
+        5.  **Minimize Columns:** Strive to create tables with a reasonable number of columns. 
+        6.  **Define Primary and Foreign Keys:** Clearly define primary keys for each table and establish foreign key relationships to enforce referential integrity.
+        7.  **Data Types:** Select appropriate data types for each attribute based on the nature of the data.
+        8.  **Output Format:** Provide the schema in YAML format, clearly defining tables, columns, data types, primary keys, and foreign keys.
+        9. **Assume Best Practices:** Adhere to database design best practices, including proper naming conventions and data type selection.
+        10. **Focus on Data Structure:** Focus solely on the schema structure, without considering specific database engine syntax or implementation details unless absolutely necessary to define a datatype.
+        11. **Handle Many-to-Many: Use junction tables **only** when the many-to-many relationship is complex or needs additional data. For simple relationships, prioritize **direct foreign keys**.
+        
+        **Context**
 
-        2️ **Design Smart Entities:**  
-           Identify entities and prioritize practicality — avoid over-fragmentation unless necessary.
+        {context}  <-- Previous context
 
-        3️ **Relationships:**  
-           - Use junction tables **only** when the many-to-many relationship is complex or needs additional data.  
-           - For simple relationships, prioritize **direct foreign keys**.  
+        **Input:**
 
-        4️ **Normalization (3NF)**:  
-           Stick to 3NF, **but don’t overdo it**. If a table gets too fragmented or introduces too many unnecessary joins, intelligently **merge tables**.  
+        1. **Previously produced Schema that you need to build upon:**
+        This schema may have incomplete information and may need to be updated based on the new user stories.
+        {previous_yaml_schema}
 
-        5 **Optimize the Schema:**  
-           - Avoid redundant junction tables unless justified.  
-           - Merge tables that hold closely related data to improve readability and performance without causing redundancy.  
+        2. **User Story and Gherkin:**
+        {user_story}
 
-        6 **Output Format:**  
-           - Deliver only the schema in clean YAML format (no explanations).  
-           - Define tables, columns, data types, primary keys, and foreign keys.  
-
-        7️ **Assume Best Practices:**  
-           - Use clean, consistent naming conventions.  
-           - Select sensible data types without database-specific syntax.  
-
-        **Context:**  
-        {context}
-
-        **Previously produced Schema that you need to build upon:**
-         This schema may have incomplete information and may need to be updated based on the new user stories.
-         {previous_yaml_schema}
-
-         **User Story and Gherkin:**
-         {user_story}
-
-        **Expected Output:**  
-        YAML schema output (optimized for readability and practicality).
-        your yaml format should look like this (do not copy this as it is, use it as reference): 
-
+        **Expected Output:**
+        Deliver only the schema in clean YAML format (no explanations)
+        Define tables, columns, data types, primary keys, and foreign keys.  
+        Example Schema that your final table may look like, basically use it as reference for the structure for the YAML file, do not copy it as it is or replicate it:
         ```yaml
-         tables:
-             users:
-                 columns:
+        tables:
+            users:
+                columns:
                 - id:
                     type: Integer
                     primary_key: true
@@ -568,119 +395,20 @@ def generate_yaml_schema(
                     type: one_to_many
                     related_table: tasks
                     foreign_key: assigned_to
-                prepopulate:
-                - name: "John Doe"
-                    email: "john.doe@example.com"
 
-            teams:
-                columns:
-                - id:
-                    type: Integer
-                    primary_key: true
-                - name:
-                    type: String(100)
-
-                relationships:
-                - user_teams:
-                    type: one_to_many
-                    related_table: user_teams
-                    foreign_key: team_id
-                - projects:
-                    type: one_to_many
-                    related_table: projects
-                    foreign_key: team_id
-                prepopulate:
-                - name: "Development Team"
-
-            user_teams:
-                columns:
-                - id:
-                    type: Integer
-                    primary_key: true
-                - user_id:
-                    type: Integer
-                    foreign_key: users.id
-                - team_id:
-                    type: Integer
-                    foreign_key: teams.id
-                relationships:
-                - user:
-                    type: many_to_one
-                    related_table: users
-                    foreign_key: user_id
-                - team:
-                    type: many_to_one
-                    related_table: teams
-                    foreign_key: team_id
-
-            projects:
-                columns:
-                - id:
-                    type: Integer
-                    primary_key: true
-                - name:
-                    type: String(150)
-                - team_id:
-                    type: Integer
-                    foreign_key: teams.id
-                relationships:
-                - team:
-                  type: many_to_one
-                  related_table: teams
-                    foreign_key: team_id
-                - tasks:
-                    type: one_to_many
-                    related_table: tasks
-                    foreign_key: project_id
-                 prepopulate:
-                 - name: "Sample Project"
-
-             tasks:
-                 columns:
-                 - id:
-                     type: Integer
-                    primary_key: true
-                - title:
-                    type: String(150)
-                - description:
-                    type: Text
-                - status:
-                    type: String(50)
-                - priority:
-                    type: String(50)
-                - due_date:
-                    type: Date
-                - project_id:
-                    type: Integer
-                    foreign_key: projects.id
-                - assigned_to:
-                    type: Integer
-                    foreign_key: users.id
-                relationships:
-                - project:
-                    type: many_to_one
-                    related_table: projects
-                    foreign_key: project_id
-                - assigned_user:
-                    type: many_to_one
-                    related_table: users
-                    foreign_key: assigned_to
-                prepopulate:
-                - title: "Initial Task"
-                  status: "Pending"
-                  priority: "Medium"
-                  due_date: "2025-01-01"
+            
         """
+
 
         client_gemini = genai.Client(api_key=GEMINI_API_KEY)
         response = client_gemini.models.generate_content(
             model="gemini-2.0-flash",
             contents=[system_prompt, prompt_schema_creation],
-        #     config={
-        #         "temperature": 0.3,  # 0 to 2
-        #         "top_p": 0.9,
-        #         "top_k": 50,
-        #     },
+             config={
+                 "temperature": 0.3,  # 0 to 2
+                 "top_p": 0.9,
+                 "top_k": 50,
+             },
         )
         
         return (
