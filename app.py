@@ -644,6 +644,7 @@ def main():
                     current_user_story = analysis_result  # Store user story for generate_api_code Function
                     user_stories.append(current_user_story)
                     user_story_count += 1
+                
                 else:
                     st.write("Failed to analyze the image.")
 
@@ -658,7 +659,7 @@ def main():
             # for i in range(0, user_story_count):
             #     combined_user_stories += "\n" + user_stories[i]
             #     yaml_generated, token_count = generate_yaml_schema(user_stories[i], combined_user_stories, yaml_generated)
-            yaml_generated, token_count = generate_yaml_schema(combined_user_stories)
+            yaml_generated, token_count = generate_yaml_schema(user_stories)
             st.code(yaml_generated, language="yaml")
             
 
